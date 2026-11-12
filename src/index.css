@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/cairo";
+
+@theme {
+  --font-display: "Space Grotesk Variable", "Cairo Variable", system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Cairo Variable", system-ui, sans-serif;
+  --color-ink: #0a1226;
+  --color-panel: #101b36;
+  --color-panel-2: #16244a;
+  --color-line: #233459;
+  --color-muted: #8ea0c4;
+  --color-cyan: #22d3ee;
+  --color-electric: #3b82f6;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-ink);
+  color: #e8eefc;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
+
+@layer components {
+  .card { @apply rounded-2xl border border-line bg-panel; }
+  .btn {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-line bg-panel-2 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1d2f5c] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary { @apply border-transparent bg-cyan text-ink hover:bg-[#67e3f5]; }
+  .btn-danger { @apply border-red-500/40 bg-transparent text-red-300 hover:bg-red-500/10; }
+  .btn-ghost { @apply border-transparent bg-transparent hover:bg-panel-2; }
+  .btn-icon { @apply min-h-9 min-w-9 px-2; }
+  .input {
+    @apply min-h-10 w-full rounded-xl border border-line bg-ink px-3 py-2 text-sm text-white placeholder:text-muted/70 focus:border-cyan focus:outline-none;
+  }
+  .label { @apply mb-1 block text-xs text-muted; }
+  .chip { @apply rounded-full border border-line px-3 py-1 text-sm text-muted transition-colors hover:text-white; }
+  .chip-on { @apply border-cyan bg-cyan/10 text-cyan; }
+}
+
+:focus-visible { outline: 2px solid var(--color-cyan); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
