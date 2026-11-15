@@ -118,7 +118,7 @@ export default function ClientPage() {
 
       {creating && (
         <Modal title={t('program_new')} onClose={() => setCreating(false)}>
-          <button className="btn btn-primary w-full" onClick={() => { setCreating(false); setGenerating(true) }}>✨ {t('gen_button')}</button>
+          <button className="btn btn-primary w-full" onClick={() => { setCreating(false); setGenerating(true) }}>{t('gen_button')}</button>
           <button className="btn mt-2 w-full" onClick={() => start()}>{t('from_blank')}</button>
           <h3 className="mb-2 mt-5 text-sm font-semibold text-muted">{t('from_template')}</h3>
           {templates.length === 0 ? (

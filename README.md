@@ -37,6 +37,20 @@ HashRouter is used on purpose: deep links work without server rewrites on any ho
 - Export: PDF (download or share sheet) plus a WhatsApp-formatted text version (copy or open WhatsApp).
 - Optional Instagram QR code at the end of the PDF (Settings).
 
+## Install as an app
+
+The app is a PWA. On Android Chrome and desktop it shows an **Install app** button (header, sidebar, Settings and a first-run banner). On iPhone Safari there is no install prompt, so the button opens the 3-step instructions (Share, then Add to Home Screen).
+
+## Brand assets
+
+`brand/` holds the two source logos and `make-icons.py`. To change the logo, replace the PNGs in `brand/` and run:
+
+```
+python brand/make-icons.py
+```
+
+It regenerates all app icons, the favicon and the transparent in-app logos in `public/` (needs `pip install pillow numpy`).
+
 ## How it is organised
 
 ```

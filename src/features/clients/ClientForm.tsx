@@ -16,7 +16,7 @@ export default function ClientForm({
   return (
     <div className="space-y-3">
       <Field label={t('client_name')}>
-        <input className="input" value={c.name} autoFocus onChange={(e) => set('name', e.target.value)} />
+        <input className="input" value={c.name} autoFocus onChange={(e) => set('name', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && c.name.trim()) onSubmit({ ...c, name: c.name.trim() }) }} />
       </Field>
       <Field label={t('client_goal')}>
         <input className="input" value={c.goal} placeholder={t('client_goal_ph')} onChange={(e) => set('goal', e.target.value)} />

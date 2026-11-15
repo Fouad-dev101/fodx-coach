@@ -4,9 +4,10 @@ import { useStore } from '../../store/useStore'
 import { useT } from '../../i18n'
 import { Empty, Modal, PageHead, confirmIf } from '../../components/ui'
 import GenerateModal from '../programs/GenerateModal'
+import { addStarterTemplates } from './starter'
 
 export default function TemplatesPage() {
-  const { t } = useT()
+  const { t, lang } = useT()
   const nav = useNavigate()
   const programs = useStore((s) => s.programs)
   const clients = useStore((s) => s.clients)
@@ -19,7 +20,7 @@ export default function TemplatesPage() {
   return (
     <div>
       <PageHead title={t('templates_title')}>
-        <button className="btn" onClick={() => setGenerating(true)}>✨ {t('gen_button')}</button>
+        <button className="btn" onClick={() => setGenerating(true)}>{t('gen_button')}</button>
         <button
           className="btn btn-primary"
           onClick={() => nav(`/programs/${createProgram({ clientId: null, isTemplate: true })}`)}
@@ -30,7 +31,10 @@ export default function TemplatesPage() {
       <p className="mb-4 text-sm text-muted">{t('templates_hint')}</p>
 
       {templates.length === 0 ? (
-        <Empty>{t('templates_empty')}</Empty>
+        <Empty>
+          <p>{t('templates_empty')}</p>
+          <button className="btn btn-primary mt-4" onClick={() => addStarterTemplates(t, lang)}>{t('starter_templates')}</button>
+        </Empty>
       ) : (
         <ul className="grid gap-3">
           {templates.map((p) => (

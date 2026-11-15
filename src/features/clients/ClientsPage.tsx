@@ -4,6 +4,8 @@ import { useStore } from '../../store/useStore'
 import { useT } from '../../i18n'
 import { Empty, Modal, PageHead } from '../../components/ui'
 import ClientForm, { emptyClient } from './ClientForm'
+import Onboarding from './Onboarding'
+import { InstallBanner } from '../../components/Install'
 
 export default function ClientsPage() {
   const { t } = useT()
@@ -23,6 +25,9 @@ export default function ClientsPage() {
       <PageHead title={t('clients_title')}>
         <button className="btn btn-primary" onClick={() => setOpen(true)}>+ {t('client_new')}</button>
       </PageHead>
+
+      <InstallBanner />
+      <Onboarding onAddClient={() => setOpen(true)} />
 
       {clients.length > 3 && (
         <input className="input mb-4" placeholder={t('search_clients')} value={q} onChange={(e) => setQ(e.target.value)} />

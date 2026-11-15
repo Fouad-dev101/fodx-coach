@@ -39,6 +39,7 @@ describe('FODX Coach smoke flow', () => {
 
     // Timed toggle, then undo puts it back (wait so the two edits are separate undo steps)
     await new Promise((r) => setTimeout(r, 1000))
+    await user.click(screen.getAllByRole('button', { name: 'Plus' })[0])
     await user.click(screen.getAllByRole('button', { name: /Temps/ })[0])
     expect(useStore.getState().programs[0].weeks[0].days[0].entries[0].measure).toBe('time')
     await user.click(screen.getByRole('button', { name: /Annuler/ }))

@@ -5,6 +5,7 @@ import { useT } from '../../i18n'
 import { Field, Modal, confirmIf } from '../../components/ui'
 import { cloneDay, cloneWeek } from '../../lib/clone'
 import { exName } from '../../lib/exercise'
+import { uid } from '../../lib/id'
 import { makeEntry } from '../../lib/entry'
 import { DEFAULT_DAY, entryLabels } from '../../lib/format'
 import { dayMinutes, volumeByMuscle } from '../../lib/stats'
@@ -42,6 +43,7 @@ export default function ProgramBuilder() {
   const [tplOpen, setTplOpen] = useState(false)
   const [tplName, setTplName] = useState('')
   const [toast, setToast] = useState('')
+  const [openIds, setOpenIds] = useState<Record<string, boolean>>({})
   const exMap = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises])
 
   // Ctrl/Cmd+Z undoes the program unless you are typing in a field (the browser handles text undo there).
@@ -208,7 +210,7 @@ export default function ProgramBuilder() {
         >
           {t('duplicate_week')}
         </button>
-        <button className="btn" onClick={() => setProgressing(true)}>📈 {t('generate_weeks')}</button>
+        <button className="btn" onClick={() => setProgressing(true)}>{t('generate_weeks')}</button>
         {program.weeks.length > 1 && (
           <button
             className="btn btn-danger"
@@ -271,37 +273,27 @@ export default function ProgramBuilder() {
                   {day.entries.map((en, i) => {
                     const ex = exMap.get(en.exerciseId)
                     const isTime = en.measure === 'time'
+                    const open = !!openIds[en.id]
+                    const grouped = /[a-z]$/.test(labels[i])
                     return (
-                      <li key={en.id} className={`rounded-xl border bg-ink p-3 ${/[a-z]$/.test(labels[i]) ? 'border-s-4 border-line border-s-cyan' : 'border-line'}`}>
-                        <div className="flex items-center gap-2">
+                      <li key={en.id} className={`rounded-xl border bg-ink p-3 ${grouped ? 'border-s-4 border-line border-s-cyan' : 'border-line'}`}>
+                        <div className="flex items-center gap-1">
                           <span className="w-7 shrink-0 text-sm font-semibold text-cyan">{labels[i]}</span>
-                          <div className="min-w-0 flex-1 truncate font-medium">{ex ? exName(ex, lang) : t('unknown_exercise')}</div>
+                          <div className="min-w-0 flex-1 truncate font-medium">
+                            {ex ? exName(ex, lang) : t('unknown_exercise')} {isTime && <span className="text-cyan">⏱</span>}
+                          </div>
                           <button className="btn btn-ghost btn-icon" aria-label={t('move_up')} disabled={i === 0} onClick={() => mutDay(day.id, (d) => move(d.entries, i, -1))}>↑</button>
                           <button className="btn btn-ghost btn-icon" aria-label={t('move_down')} disabled={i === day.entries.length - 1} onClick={() => mutDay(day.id, (d) => move(d.entries, i, 1))}>↓</button>
+                          <button className="btn btn-ghost btn-icon" aria-label={t('duplicate_exercise')} title={t('duplicate_exercise')} onClick={() => mutDay(day.id, (d) => void d.entries.splice(i + 1, 0, { ...en, id: uid(), superset: false }))}>⧉</button>
                           <button className="btn btn-ghost btn-icon text-red-300" aria-label={t('delete')} onClick={() => mutDay(day.id, (d) => void d.entries.splice(i, 1))}>✕</button>
                         </div>
 
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <div className="flex overflow-hidden rounded-lg border border-line text-xs">
-                            <button className={`px-3 py-1.5 ${!isTime ? 'bg-cyan text-ink' : 'text-muted'}`} onClick={() => setMeasure(day.id, en, 'reps')}>{t('measure_reps')}</button>
-                            <button className={`px-3 py-1.5 ${isTime ? 'bg-cyan text-ink' : 'text-muted'}`} onClick={() => setMeasure(day.id, en, 'time')}>⏱ {t('measure_time')}</button>
-                          </div>
-                          <button
-                            className={`chip text-xs ${en.superset ? 'chip-on' : ''}`}
-                            disabled={i === day.entries.length - 1}
-                            aria-pressed={en.superset}
-                            onClick={() => mutEntry(day.id, en.id, (x) => void (x.superset = !x.superset))}
-                          >
-                            ⛓ {t('superset')}
-                          </button>
-                        </div>
-
-                        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        <div className={`mt-2 grid gap-2 ${isTime ? 'grid-cols-4' : 'grid-cols-3'}`}>
                           <Field label={t('sets')}>
                             <input className="input" inputMode="numeric" value={en.sets} onChange={(e) => mutEntry(day.id, en.id, (x) => void (x.sets = num(e.target.value)))} />
                           </Field>
                           {isTime ? (
-                            <div>
+                            <div className="col-span-2">
                               <span className="label">{t('duration')}</span>
                               <DurationInput value={en.durationSec} onChange={(v) => mutEntry(day.id, en.id, (x) => void (x.durationSec = v))} />
                             </div>
@@ -313,22 +305,65 @@ export default function ProgramBuilder() {
                           <Field label={t('rest')}>
                             <input className="input" inputMode="numeric" value={en.restSec ?? ''} onChange={(e) => mutEntry(day.id, en.id, (x) => void (x.restSec = e.target.value === '' ? null : num(e.target.value)))} />
                           </Field>
-                          <Field label={t('load')}>
-                            <input className="input" value={en.load} placeholder={t('load_ph')} onChange={(e) => mutEntry(day.id, en.id, (x) => void (x.load = e.target.value))} />
-                          </Field>
-                          <div className="col-span-2 sm:col-span-4">
-                            <Field label={t('entry_notes')}>
-                              <input className="input" value={en.notes} onChange={(e) => mutEntry(day.id, en.id, (x) => void (x.notes = e.target.value))} />
-                            </Field>
-                          </div>
                         </div>
+
+                        {!open && (en.load.trim() || en.notes.trim()) && (
+                          <p className="mt-2 truncate text-xs text-muted">{[en.load.trim(), en.notes.trim()].filter(Boolean).join(' / ')}</p>
+                        )}
+                        <button className="mt-2 text-xs text-cyan" aria-expanded={open} onClick={() => setOpenIds((o) => ({ ...o, [en.id]: !o[en.id] }))}>
+                          {open ? t('less') : t('more')}
+                        </button>
+
+                        {open && (
+                          <div className="mt-2 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="flex overflow-hidden rounded-lg border border-line text-xs">
+                                <button className={`px-3 py-1.5 ${!isTime ? 'bg-cyan text-ink' : 'text-muted'}`} onClick={() => setMeasure(day.id, en, 'reps')}>{t('measure_reps')}</button>
+                                <button className={`px-3 py-1.5 ${isTime ? 'bg-cyan text-ink' : 'text-muted'}`} onClick={() => setMeasure(day.id, en, 'time')}>⏱ {t('measure_time')}</button>
+                              </div>
+                              <button
+                                className={`chip text-xs ${en.superset ? 'chip-on' : ''}`}
+                                disabled={i === day.entries.length - 1}
+                                aria-pressed={en.superset}
+                                onClick={() => mutEntry(day.id, en.id, (x) => void (x.superset = !x.superset))}
+                              >
+                                {t('superset')}
+                              </button>
+                            </div>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <Field label={t('load')}>
+                                <input className="input" value={en.load} placeholder={t('load_ph')} onChange={(e) => mutEntry(day.id, en.id, (x) => void (x.load = e.target.value))} />
+                              </Field>
+                              <Field label={t('entry_notes')}>
+                                <input className="input" value={en.notes} onChange={(e) => mutEntry(day.id, en.id, (x) => void (x.notes = e.target.value))} />
+                              </Field>
+                            </div>
+                          </div>
+                        )}
                       </li>
                     )
                   })}
                 </ol>
               )}
 
-              <button className="btn mt-3" onClick={() => setPickerDay(day.id)}>+ {t('add_exercise')}</button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button className="btn" onClick={() => setPickerDay(day.id)}>+ {t('add_exercise')}</button>
+                {day.entries.filter((e) => e.measure === 'reps').length > 1 && (
+                  <button
+                    className="btn btn-ghost"
+                    onClick={() =>
+                      mutDay(day.id, (d) => {
+                        const first = d.entries.find((e) => e.measure === 'reps')
+                        if (!first) return
+                        for (const e of d.entries)
+                          if (e.measure === 'reps') Object.assign(e, { sets: first.sets, reps: first.reps, restSec: first.restSec })
+                      })
+                    }
+                  >
+                    {t('apply_all')}
+                  </button>
+                )}
+              </div>
             </section>
           )
         })}
@@ -345,6 +380,13 @@ export default function ProgramBuilder() {
           <textarea className="input min-h-24" value={program.coachNote} onChange={(e) => update(pid, (d) => void (d.coachNote = e.target.value))} />
         </Field>
       </div>
+
+      <button
+        className="btn btn-primary fixed bottom-24 end-4 z-30 shadow-lg shadow-black/40 md:bottom-6 md:end-8"
+        onClick={() => setExporting(true)}
+      >
+        {t('export_pdf')}
+      </button>
 
       {pickerDay && (
         <ExercisePicker

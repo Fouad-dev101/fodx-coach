@@ -6,6 +6,8 @@ import { fileToLogo } from '../../lib/image'
 import { downloadBlob } from '../../lib/download'
 import { parseBackup } from '../../store/schema'
 import { isHex } from '../../lib/color'
+import { InstallButton } from '../../components/Install'
+import { version } from '../../../package.json'
 
 const PRESETS = ['#22D3EE', '#3B82F6', '#22C55E', '#EAB308', '#F97316', '#EC4899']
 
@@ -56,6 +58,14 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <PageHead title={t('settings_title')} />
+
+      <section className="card flex flex-wrap items-center justify-between gap-3 p-5">
+        <div>
+          <h2 className="font-semibold">{t('install_title')}</h2>
+          <p className="text-sm text-muted">{t('install_banner')}</p>
+        </div>
+        <InstallButton className="btn btn-primary" />
+      </section>
 
       <section className="card p-5">
         <h2 className="mb-3 font-semibold">{t('ui_language')}</h2>
@@ -161,10 +171,32 @@ export default function SettingsPage() {
         )}
       </section>
 
+      <section className="card space-y-3 p-5">
+        <h2 className="font-semibold">{t('invite_title')}</h2>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              const text = t('invite_text', { url: location.origin })
+              if (navigator.share) void navigator.share({ text }).catch(() => undefined)
+              else window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+            }}
+          >
+            {t('invite_btn')}
+          </button>
+          <a className="btn" href="https://instagram.com/fodxtech" target="_blank" rel="noreferrer">{t('send_feedback')}</a>
+        </div>
+      </section>
+
       <section className="card space-y-3 border-red-500/30 p-5">
         <h2 className="font-semibold">{t('danger_zone')}</h2>
         <button className="btn btn-danger" onClick={() => confirmIf(t('reset_confirm')) && void resetAll()}>{t('reset_all')}</button>
       </section>
+      <p className="pb-4 text-center text-xs text-muted">
+        {t('privacy_line')}
+        <br />
+        FODX Coach v{version} / @fodxtech
+      </p>
     </div>
   )
 }
